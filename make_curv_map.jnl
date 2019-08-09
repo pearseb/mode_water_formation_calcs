@@ -1,0 +1,18 @@
+
+can data/all
+
+use MY_PISCES_NITRIF_1y_ptrc_Y1659.nc
+
+set mem/size=1000
+
+define axis/x=-180:180:2/units=degrees xax
+define axis/y=-90:90:1/units=degrees yax
+define grid/x=xax/y=yax mygrid
+let lonlatout = y[gy=mygrid] + x[gx=mygrid]
+
+let lonin = nav_lon
+let latin = nav_lat
+
+let map = curv_to_rect_map(lonin,latin,lonlatout,10)
+
+save/file=curv_map_pisces_2x1.nc/clobber map

@@ -1,0 +1,18 @@
+
+can data/all
+can var/all
+
+set mem/size=2000
+
+use curv_map_pisces_2x1.nc
+use transports_at_modewater_outcrops_3D.nc
+
+let u_aaiw = curv_to_rect(Utrans_aaiw[d=2],map[d=1])
+let v_aaiw = curv_to_rect(Vtrans_aaiw[d=2],map[d=1])
+let w_aaiw = curv_to_rect(Wtrans_aaiw[d=2],map[d=1])
+let u_samw = curv_to_rect(Utrans_samw[d=2],map[d=1])
+let v_samw = curv_to_rect(Vtrans_samw[d=2],map[d=1])
+let w_samw = curv_to_rect(Wtrans_samw[d=2],map[d=1])
+
+save/clobber/file="./output_regridded/transports_regular2x1.nc" u_aaiw,v_aaiw,w_aaiw,u_samw,v_samw,w_samw
+

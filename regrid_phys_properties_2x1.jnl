@@ -1,0 +1,44 @@
+
+can data/all
+can var/all
+
+set mem/size=2000
+
+use ../RUNDIR4/dyna_grid_T.nc
+use curv_map_pisces_2x1.nc
+use output_raw/ORCA2.0_Basins.nc
+
+let rho1 = rho_un(vosaline[d=1,l=1:73@ave],votemper[d=1,l=1:73@ave],0)
+let rho = if vosaline[d=1,l=@ave] eq 0 then 1/0 else rho1
+
+let sal = if vosaline[d=1,l=@ave] eq 0 then 1/0 else vosaline[d=1,l=1:73@ave]
+
+let mld = if vosaline[d=1,l=@ave,k=1] eq 0 then 1/0 else SOMXL010[d=1]
+
+let sal_reg = curv_to_rect(sal,map[d=2])
+let rho_reg = curv_to_rect(rho,map[d=2])
+let mld_reg = curv_to_rect(mld,map[d=2])
+
+save/clobber/file="./output_regridded/salinity_regular2x1.nc" sal_reg
+save/clobber/file="./output_regridded/potentialdensity_regular2x1.nc" rho_reg
+save/clobber/file="./output_regridded/mixedlayerdepth_regular2x1.nc" mld_reg
+
+
+can var/all
+can data/all
+
+use "./output_regridded/potentialdensity_regular2x1.nc"
+use "/users/pearseb/woa18/woa18_decav_s00_01.nc"
+use "/users/pearseb/woa18/woa18_decav_t00_01.nc"
+
+let rho0 = rho_un(s_an[d=2],t_an[d=3],0)
+
+define grid/like=rho_reg[d=1] newgrd
+
+let rho = rho0[g=newgrd@ave]
+let sal = s_an[d=2,g=newgrd@ave]
+
+save/clobber/file="./output_regridded/salinity_regular2x1_woa18.nc" sal
+save/clobber/file="./output_regridded/potentialdensity_regular2x1_woa18.nc" rho
+
+

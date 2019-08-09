@@ -1,0 +1,217 @@
+
+can data/all
+can var/all
+
+set mem/size=1000
+
+
+
+!!! 2 - calculate NO3 subducted/obducted and the NO3 that is nitrified (all in units of mol/s)
+
+use results/modewater_formation_3Dfield.nc
+use output_regridded/nitrif_on_transports_regular2x1.nc
+use output_regridded/volume_on_transports_regular2x1.nc
+use output_regridded/nitrate_on_transports_regular2x1.nc
+
+let Sann_aaiw_P = if Sann_aaiw[d=1] lt 0 then 1/0 else Sann_aaiw[d=1]
+let Sann_aaiw_N = if Sann_aaiw[d=1] lt 0 then Sann_aaiw[d=1] else 1/0
+let Sann_samw_P = if Sann_samw[d=1] lt 0 then 1/0 else Sann_samw[d=1]
+let Sann_samw_N = if Sann_samw[d=1] lt 0 then Sann_samw[d=1] else 1/0
+
+!a. NO3 subducted = average NO3 (mol/m3) * subduction rate (m3/s) = mmol/s
+!b. NO3 obducted = average NO3 (mol/m3) * obduction rate (m3/s) = mmol/s
+!c. NO3 nitrified = nitrification rate (mol/m3/s) * volume (m3) * 1e3 = mmol/s    !!! but only where subduction occurs
+
+
+!a. and !.b for AAIW
+let no3_aaiw_sub = no3_aaiw[d=4]*sann_aaiw[d=1,l=1:73] !(mmol/s)  TOTAL
+let no3_aaiw_sub_P = no3_aaiw[d=4]*sann_aaiw_P[l=1:73] !(mmol/s)  ONLY SUBDUCTION
+let no3_aaiw_sub_N = no3_aaiw[d=4]*sann_aaiw_N[l=1:73] !(mmol/s)  ONLY OBDUCTION (upwelling)
+!a. and !.b for SAMW
+let no3_samw_sub = no3_samw[d=4]*sann_samw[d=1,l=1:73] !(mmol/s)  TOTAL 
+let no3_samw_sub_P = no3_samw[d=4]*sann_samw_P[l=1:73] !(mmol/s)  ONLY SUBDUCTION
+let no3_samw_sub_N = no3_samw[d=4]*sann_samw_N[l=1:73] !(mmol/s)  ONLY OBDUCTION (upwelling)
+
+!c. for AAIW
+let no3_aaiw_nit = nit_aaiw[d=2]*1e3*vol_aaiw[d=3] !(mmol/s)  TOTAL
+let no3_aaiw_nit_P = if no3_aaiw_sub_P then no3_aaiw_nit else 0 !(mmol/s)  ONLY SUBDUCTION
+let no3_aaiw_nit_N = if no3_aaiw_sub_N then no3_aaiw_nit else 0 !(mmol/s)  ONLY OBDUCTION
+!c. for SAMW
+let no3_samw_nit = nit_samw[d=2]*1e3*vol_samw[d=3] !(mmol/s)  TOTAL
+let no3_samw_nit_P = if no3_samw_sub_P then no3_samw_nit else 0 !(mmol/s)  ONLY SUBDUCTION
+let no3_samw_nit_N = if no3_samw_sub_N then no3_samw_nit else 0 !(mmol/s)  ONLY OBDUCTION
+
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! FIRST, FIND NO3 TRANSPORTS THROUGH AAIW AND SAMW !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+message
+
+!! LOOK AT WHAT THE VALUES OF NO3 ARE AT SUBDUCTION/OBDUCTION SITES
+set win/aspect=0.65 1
+sha/lev=(0,10,1)(10,30,2)(inf) no3_aaiw[d=4,l=55]
+cont/o/lev=(-5000)/color=black Sann_aaiw[d=1,l=55]
+cont/o/lev=(5000)/color=red Sann_aaiw[d=1,l=55]
+go fland 20 black
+set win/aspect=0.65 2
+sha/lev=(0,10,1)(10,30,2)(inf) no3_samw[d=4,l=55]
+cont/o/lev=(-5000)/color=black Sann_samw[d=1,l=55]
+cont/o/lev=(5000)/color=red Sann_samw[d=1,l=55]
+go fland 20 black
+
+
+
+! calculate nitrate concentrations at subduction and obduction sites
+
+let no3_aaiw_submean = if no3_aaiw_sub_P then no3_aaiw[d=4] else 1/0
+let no3_aaiw_obmean = if no3_aaiw_sub_N then no3_aaiw[d=4] else 1/0
+let no3_samw_submean = if no3_samw_sub_P then no3_samw[d=4] else 1/0
+let no3_samw_obmean = if no3_samw_sub_N then no3_samw[d=4] else 1/0
+
+let no3_aaiw_submean_t = no3_aaiw_submean[x=@ave,y=-90:0@ave,l=1:73]
+let no3_aaiw_obmean_t = no3_aaiw_obmean[x=@ave,y=-90:0@ave,l=1:73]  
+let no3_samw_submean_t = no3_samw_submean[x=@ave,y=-90:0@ave,l=1:73]
+let no3_samw_obmean_t = no3_samw_obmean[x=@ave,y=-90:0@ave,l=1:73]  
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! tell me the mean no3 at aaiw and samw (mmol/m3) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead no3_aaiw_submean_t[l=40:55@ave], no3_aaiw_obmean_t[l=40:55@ave]
+list/nohead no3_samw_submean_t[l=40:55@ave], no3_samw_obmean_t[l=40:55@ave]
+
+
+
+
+let no3_aaiw_subint_t = no3_aaiw_sub_P[x=@sum,y=-90:0@sum]  !mmol/s
+let no3_aaiw_obint_t = no3_aaiw_sub_N[x=@sum,y=-90:0@sum]*(-1)
+let no3_samw_subint_t = no3_samw_sub_P[x=@sum,y=-90:0@sum]
+let no3_samw_obint_t = no3_samw_sub_N[x=@sum,y=-90:0@sum]*(-1)
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! integrated no3 transports at aaiw and samw (mmol/s) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead no3_aaiw_subint_t[l=40:55@ave], no3_aaiw_obint_t[l=40:55@ave]
+list/nohead no3_samw_subint_t[l=40:55@ave], no3_samw_obint_t[l=40:55@ave]
+
+
+
+set win 3
+plot no3_aaiw_subint_t, no3_aaiw_obint_t
+set win 4
+plot no3_samw_subint_t, no3_samw_obint_t
+
+! UNITS ARE IN mmol/s
+save/clobber/file="./results/nitrate_transformations_timeseries.nc" no3_aaiw_subint_t, no3_aaiw_obint_t, no3_samw_subint_t, no3_samw_obint_t
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! SECOND, FIND NITRIFICATION RATES AND ITS CONTRIBUTION !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+message
+
+
+let nit_aaiw_submean_t = no3_aaiw_nit_P[x=@ave,y=-90:0@ave] !mmol/s
+let nit_aaiw_obmean_t = no3_aaiw_nit_N[x=@ave,y=-90:0@ave]  !mmol/s
+let nit_samw_submean_t = no3_samw_nit_P[x=@ave,y=-90:0@ave] !mmol/s
+let nit_samw_obmean_t = no3_samw_nit_N[x=@ave,y=-90:0@ave]  !mmol/s
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! mean nitrification of no3 at the sites of aaiw and samw subduction/obduction (mmol/s) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead nit_aaiw_submean_t[l=40:55@ave], nit_aaiw_obmean_t[l=40:55@ave]
+list/nohead nit_samw_submean_t[l=40:55@ave], nit_samw_obmean_t[l=40:55@ave]
+
+
+
+let nit_aaiw_subint_t = no3_aaiw_nit_P[x=@sum,y=-90:0@sum] !mmol/s
+let nit_aaiw_obint_t = no3_aaiw_nit_N[x=@sum,y=-90:0@sum]  !mmol/s
+let nit_samw_subint_t = no3_samw_nit_P[x=@sum,y=-90:0@sum] !mmol/s
+let nit_samw_obint_t = no3_samw_nit_N[x=@sum,y=-90:0@sum]  !mmol/s
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! integrated nitrification of no3 at the sites of aaiw and samw subduction/obduction (mmol/s) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead nit_aaiw_subint_t[l=40:55@ave], nit_aaiw_obint_t[l=40:55@ave] ! (mmol/s)
+list/nohead nit_samw_subint_t[l=40:55@ave], nit_samw_obint_t[l=40:55@ave] ! (mmol/s)
+
+! UNITS ARE IN mmol/s
+save/append/file="./results/nitrate_transformations_timeseries.nc" nit_aaiw_subint_t, nit_aaiw_obint_t, nit_samw_subint_t, nit_samw_obint_t
+
+
+
+!                                    W I N T E R                                            !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! percentage of nitrified NO3 SUBDUCTED into AAIW and SAMW as a percentage of total NO3 !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead nit_aaiw_subint_t[l=40:55@ave]*1e-3 / (no3_aaiw_subint_t[l=40:55@ave]*1e-3)*100
+list/nohead nit_samw_subint_t[l=40:55@ave]*1e-3 / (no3_samw_subint_t[l=40:55@ave]*1e-3)*100
+
+!                                   W I N T E R                                            !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! percentage of nitrified NO3 OBDUCTED into AAIW and SAMW as a percentage of total NO3 !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list nit_aaiw_obint_t[l=40:55@ave]*1e-3 / (no3_aaiw_obint_t[l=40:55@ave]*1e-3)*100
+list nit_samw_obint_t[l=40:55@ave]*1e-3 / (no3_samw_obint_t[l=40:55@ave]*1e-3)*100
+
+!                                    S U M M E R                                            !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! percentage of nitrified NO3 SUBDUCTED into AAIW and SAMW as a percentage of total NO3 !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead nit_aaiw_subint_t[l=1:25@ave]*1e-3 / (no3_aaiw_subint_t[l=1:25@ave]*1e-3)*100
+list/nohead nit_samw_subint_t[l=1:25@ave]*1e-3 / (no3_samw_subint_t[l=1:25@ave]*1e-3)*100
+
+!                                    S U M M E R                                            !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! percentage of nitrified NO3 OBDUCTED into AAIW and SAMW as a percentage of total NO3 !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead nit_aaiw_obint_t[l=1:25@ave]*1e-3 / (no3_aaiw_obint_t[l=1:25@ave]*1e-3)*100
+list/nohead nit_samw_obint_t[l=1:25@ave]*1e-3 / (no3_samw_obint_t[l=1:25@ave]*1e-3)*100
+
+
+let nit_contrib_aaiw_sub = nit_aaiw_subint_t/no3_aaiw_subint_t*100
+let nit_contrib_aaiw_ob = nit_aaiw_obint_t/no3_aaiw_obint_t*100 
+let nit_contrib_samw_sub = nit_samw_subint_t/no3_samw_subint_t*100
+let nit_contrib_samw_ob = nit_samw_obint_t/no3_samw_obint_t*100 
+
+
+set win 5
+plot nit_contrib_aaiw_sub, nit_contrib_aaiw_ob
+set win 6
+plot nit_contrib_samw_sub, nit_contrib_samw_ob
+
+! UNITS ARE IN percent
+save/append/file="./results/nitrate_transformations_timeseries.nc" nit_contrib_aaiw_sub, nit_contrib_aaiw_ob, nit_contrib_samw_sub, nit_contrib_samw_ob
+
+
+
+
+let nit_contrib_aaiw_sub_year = nit_aaiw_subint_t[l=@din]/no3_aaiw_subint_t[l=@din]*100
+let nit_contrib_aaiw_ob_year = nit_aaiw_obint_t[l=@din]/no3_aaiw_obint_t[l=@din]*100
+let nit_contrib_samw_sub_year = nit_samw_subint_t[l=@din]/no3_samw_subint_t[l=@din]*100
+let nit_contrib_samw_ob_year = nit_samw_obint_t[l=@din]/no3_samw_obint_t[l=@din]*100
+
+!                                    A N N U A L                                            !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! percentage of nitrified NO3 SUBDUCTED into AAIW and SAMW as a percentage of total NO3 !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead nit_contrib_aaiw_sub_year
+list/nohead nit_contrib_samw_sub_year
+
+!                                    A N N U A L                                            !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! percentage of nitrified NO3 OBDUCTED into AAIW and SAMW as a percentage of total NO3 !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead nit_contrib_aaiw_ob_year
+list/nohead nit_contrib_samw_ob_year
+

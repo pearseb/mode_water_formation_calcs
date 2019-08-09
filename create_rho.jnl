@@ -1,0 +1,13 @@
+
+can data/all
+can var/all
+
+set mem/size=2000
+
+use ../RUNDIR4/dyna_grid_T.nc
+
+let temp = votemper[d=1]
+let salt = vosaline[d=1]
+let rho = rho_un(salt,temp,0)
+
+save/clobber/file="./output_raw/rho.nc" rho

@@ -1,0 +1,96 @@
+
+can data/all
+can var/all
+
+set mem/size=1000
+
+use output_regridded/potentialdensity_regular2x1.nc
+use output_regridded/mixedlayerdepth_regular2x1.nc
+use output_regridded/transports_regular2x1.nc
+
+
+let mld = mld_reg[d=2]
+let land = if rho_reg[k=1,d=1] then 1/0 else 1
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! 1 - calculate subduction/obduction rates !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+let UdotGranH_aaiw = u_aaiw[d=3]*mld[x=@ddc] + V_aaiw[d=3]*mld[y=@ddc]
+let Sann_aaiw = UdotGranH_aaiw*(-1) - W_aaiw[d=3]
+
+let UdotGranH_samw = u_samw[d=3]*mld[x=@ddc] + V_samw[d=3]*mld[y=@ddc]
+let Sann_samw = UdotGranH_samw*(-1) - W_samw[d=3]
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!
+!!! 2 - have a look !!!
+!!!!!!!!!!!!!!!!!!!!!!!
+
+
+pal yellow_green_blue
+set reg/y=-90:0
+
+set win/aspect=0.65 1
+sha/lev=(0,100,10)(100,1000,50)(inf) mld[l=40:55@ave]
+cont/o/lev=(-5000)/color=black Sann_aaiw[l=40:55@ave]
+cont/o/lev=(5000)/color=red Sann_aaiw[l=40:55@ave]
+sha/o/pal=black land
+set win/aspect=0.65 2
+sha/lev=(0,100,10)(100,1000,50)(inf) mld[l=40:55@ave]
+cont/o/lev=(-5000)/color=black Sann_samw[l=40:55@ave]
+cont/o/lev=(5000)/color=red Sann_samw[l=40:55@ave]
+sha/o/pal=black land
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! 3 - find subduction and obduction !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+let Sann_aaiw_P = if Sann_aaiw lt 0 then 1/0 else Sann_aaiw
+let Sann_aaiw_N = if Sann_aaiw lt 0 then Sann_aaiw else 1/0
+let Sann_samw_P = if Sann_samw lt 0 then 1/0 else Sann_samw
+let Sann_samw_N = if Sann_samw lt 0 then Sann_samw else 1/0
+
+set win 3
+plot Sann_aaiw[x=@sum,y=-90:0@sum]*1e-6, Sann_aaiw_P[x=@sum,y=-90:0@sum]*1e-6, Sann_aaiw_N[x=@sum,y=-90:0@sum]*1e-6
+plot/o Sann_aaiw[x=@sum,y=-90:0@sum,l=40:55]*1e-6, Sann_aaiw_P[x=@sum,y=-90:0@sum,l=40:55]*1e-6, Sann_aaiw_N[x=@sum,y=-90:0@sum,l=40:55]*1e-6
+set win 4
+plot Sann_samw[x=@sum,y=-90:0@sum]*1e-6, Sann_samw_P[x=@sum,y=-90:0@sum]*1e-6, Sann_samw_N[x=@sum,y=-90:0@sum]*1e-6
+plot/o Sann_samw[x=@sum,y=-90:0@sum,l=40:55]*1e-6, Sann_samw_P[x=@sum,y=-90:0@sum,l=40:55]*1e-6, Sann_samw_N[x=@sum,y=-90:0@sum,l=40:55]*1e-6
+
+list Sann_aaiw[x=@sum,y=-90:0@sum,l=40:55@ave]*1e-6, Sann_aaiw_P[x=@sum,y=-90:0@sum,l=40:55@ave]*1e-6, Sann_aaiw_N[x=@sum,y=-90:0@sum,l=40:55@ave]*1e-6
+list Sann_samw[x=@sum,y=-90:0@sum,l=40:55@ave]*1e-6, Sann_samw_P[x=@sum,y=-90:0@sum,l=40:55@ave]*1e-6, Sann_samw_N[x=@sum,y=-90:0@sum,l=40:55@ave]*1e-6
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! 4 - SAVE files for plotting in python !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+can reg/all
+
+let mld_ave = mld[x=@ave,y=-60:-30@ave]
+
+save/clobber/file="./results/modewater_formation_3Dfield.nc" mld, Sann_aaiw, Sann_samw, land
+
+let mld_winter = mld[l=40:55@ave]
+let Saaiw = Sann_aaiw[l=40:55@ave]
+let Ssamw = Sann_samw[l=40:55@ave]
+
+save/clobber/file="./results/modewater_formation_3Dfield_winteraverage.nc" mld_winter, Saaiw, Ssamw, land
+
+let SaaiwT = Sann_aaiw[x=@sum,y=-90:0@sum]*1e-6
+let SaaiwP = Sann_aaiw_P[x=@sum,y=-90:0@sum]*1e-6
+let SaaiwN = Sann_aaiw_N[x=@sum,y=-90:0@sum]*1e-6
+let SsamwT = Sann_samw[x=@sum,y=-90:0@sum]*1e-6
+let SsamwP = Sann_samw_P[x=@sum,y=-90:0@sum]*1e-6
+let SsamwN = Sann_samw_N[x=@sum,y=-90:0@sum]*1e-6
+
+save/clobber/file="./results/modewater_formation_timeseries.nc" mld_ave, SaaiwT,SaaiwP,SaaiwN, SsamwT,SsamwP,SsamwN, land
+
