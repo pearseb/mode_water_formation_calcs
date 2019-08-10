@@ -1,0 +1,28 @@
+
+can data/all
+can var/all
+
+set mem/size=2000
+
+use output_regridded/nitrate_on_isopycnals_regular2x1_TEST_5d_ptrc_Y1400.nc
+use output_regridded/silicate_on_isopycnals_regular2x1_TEST_5d_ptrc_Y1400.nc
+use output_regridded/nitrif_on_isopycnals_regular2x1_TEST_5d_ptrc_Y1400.nc
+
+use output_regridded/nitrate_on_isopycnals_regular2x1_ORCA2_OFF_PISCESnitoff_5d_ptrc_Y1400.nc
+use output_regridded/silicate_on_isopycnals_regular2x1_ORCA2_OFF_PISCESnitoff_5d_ptrc_Y1400.nc
+
+let sis_samw = si_samw[d=2]-no3_samw[d=1]
+let sis_aaiw = si_aaiw[d=2]-no3_aaiw[d=1]
+let sis_samw_nonit = si_samw[d=5]-no3_samw[d=4]
+let sis_aaiw_nonit = si_aaiw[d=5]-no3_aaiw[d=4]
+
+set reg/y=-80:-30
+
+let sis_samw_annualave = sis_samw[x=@ave,z=@ave,l=@ave]
+let sis_aaiw_annualave = sis_aaiw[x=@ave,z=@ave,l=@ave]
+let sis_samw_nonit_annualave = sis_samw_nonit[x=@ave,z=@ave,l=@ave]
+let sis_aaiw_nonit_annualave = sis_aaiw_nonit[x=@ave,z=@ave,l=@ave]
+let nit_samw_annualave = nit_samw[d=3,x=@ave,z=@ave,l=@ave]
+let nit_aaiw_annualave = nit_aaiw[d=3,x=@ave,z=@ave,l=@ave]
+
+save/clobber/file="./results/sistar_nitrif_on_SAMW_AAIW_densities.nc" sis_samw_annualave, sis_aaiw_annualave, sis_samw_nonit_annualave, sis_aaiw_nonit_annualave, nit_samw_annualave, nit_aaiw_annualave

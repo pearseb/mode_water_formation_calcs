@@ -1,0 +1,39 @@
+
+can data/all
+can var/all
+
+set mem/size=2000
+
+use ../RUNDIR4/dyna_grid_T.nc
+use output_raw/($1)
+
+let rho = rho_un(vosaline[d=1],votemper[d=1],0)
+let no3_samw0 = if rho gt 1026.7 and rho le 1027.2 then no3[d=2] else 1/0
+let nit_samw0 = if rho gt 1026.7 and rho le 1027.2 then nitr[d=2] else 1/0
+let si_samw0 = if rho gt 1026.7 and rho le 1027.2 then si[d=2] else 1/0
+let no3_aaiw0 = if rho gt 1027.2 and rho le 1027.6 then no3[d=2] else 1/0
+let nit_aaiw0 = if rho gt 1027.2 and rho le 1027.6 then nitr[d=2] else 1/0
+let si_aaiw0 = if rho gt 1027.2 and rho le 1027.6 then si[d=2] else 1/0
+
+use curv_map_pisces_2x1.nc
+
+let nit_aaiw1 = curv_to_rect(nit_aaiw0,map[d=3])
+let nit_samw1 = curv_to_rect(nit_samw0,map[d=3])
+let no3_aaiw1 = curv_to_rect(no3_aaiw0,map[d=3])
+let no3_samw1 = curv_to_rect(no3_samw0,map[d=3])
+let si_aaiw1 = curv_to_rect(si_aaiw0,map[d=3])
+let si_samw1 = curv_to_rect(si_samw0,map[d=3])
+
+let nit_aaiw = if nit_aaiw1 gt 1e20 then 1/0 else nit_aaiw1
+let nit_samw = if nit_samw1 gt 1e20 then 1/0 else nit_samw1
+let no3_aaiw = if no3_aaiw1 gt 1e20 then 1/0 else no3_aaiw1
+let no3_samw = if no3_samw1 gt 1e20 then 1/0 else no3_samw1
+let si_aaiw = if si_aaiw1 gt 1e20 then 1/0 else si_aaiw1
+let si_samw = if si_samw1 gt 1e20 then 1/0 else si_samw1
+
+save/clobber/file="./output_regridded/nitrif_on_isopycnals_regular2x1_($1)" nit_aaiw,nit_samw
+save/clobber/file="./output_regridded/nitrate_on_isopycnals_regular2x1_($1)" no3_aaiw,no3_samw
+save/clobber/file="./output_regridded/silicate_on_isopycnals_regular2x1_($1)" si_aaiw,si_samw
+
+
+
