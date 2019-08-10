@@ -61,6 +61,27 @@ ferret -script calculate_modewater_formation.jnl
 #               - percentage of nitrified NO3 OBDUCTED into AAIW and SAMW as a percentage of total NO3 (ANNUAL)
 ferret -script calculate_nitrif_contrib_no3trans.jnl
 
-# (3) execute the "calculate_sistar_contrib.jnl" script
+# (3.1) find the no3, nitrification and si values on mode water isopycnals
+#	saves:
+#		- ./output_regridded/nitrif_on_isopycnals_regular2x1_TEST_5d_ptrc_Y1400.nc 
+#		- ./output_regridded/nitrate_on_isopycnals_regular2x1_TEST_5d_ptrc_Y1400.nc
+#		- ./output_regridded/silicate_on_isopycnals_regular2x1_TEST_5d_ptrc_Y1400.nc
+#		- ./output_regridded/nitrif_on_isopycnals_regular2x1_ORCA2_OFF_PISCESnitoff_5d_ptrc_Y1400.nc
+#		- ./output_regridded/nitrate_on_isopycnals_regular2x1_ORCA2_OFF_PISCESnitoff_5d_ptrc_Y1400.nc
+#		- ./output_regridded/silicate_on_isopycnals_regular2x1_ORCA2_OFF_PISCESnitoff_5d_ptrc_Y1400.nc 
+ferret -script find_properties_on_modewaters.jnl TEST_5d_ptrc_Y1400.nc
+ferret -script find_properties_on_modewaters.jnl ORCA2_OFF_PISCESnitoff_5d_ptrc_Y1400.nc
+
+# (3.2) calcualte the change in Si* along AAIW and SAMW isopycnals
+#	saves:
+#		- ./results/sistar_nitrif_on_SAMW_AAIW_densities.nc (mmols/m3 and mmol/m3/s)
+ferret -script calculate_sistar_trend_on_modewaters.jnl 
+
+# (3.3) execute the "calculate_nitrif_contrib_sistartrans.jnl" script
+#	saves:
+#		- ./results/silicate_transformations_timeseries.nc (mmol/s)
+#		- ./results/sistar_transformations_3Dfield.nc
+#		- ./results/sistar_transformations_timeseries.nc
+ferret -script calculate_nitrif_contrib_sistartrans.jnl
 
 
