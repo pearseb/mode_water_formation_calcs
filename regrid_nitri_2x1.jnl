@@ -1,0 +1,44 @@
+
+can data/all
+can var/all
+
+set mem/size=2000
+
+use curv_map_pisces_2x1.nc
+use output_raw/TEST_1m_ptrc_Y1400.nc
+
+set var/bad=0 nitr[d=2]
+set var/bad=0 no3[d=2]
+set var/bad=0 nh4[d=2]
+set var/bad=0 si[d=2]
+
+let nit_reg = curv_to_rect(NITR[d=2],map[d=1])
+let no3_reg = curv_to_rect(NO3[d=2],map[d=1])
+let nh4_reg = curv_to_rect(NH4[d=2],map[d=1])
+let si_reg = curv_to_rect(SI[d=2],map[d=1])
+
+save/clobber/file="./output_regridded/nitrif_1m_regular2x1.nc" nit_reg
+save/clobber/file="./output_regridded/ammonium_1m_regular2x1.nc" nh4_reg
+save/clobber/file="./output_regridded/nitrate_1m_regular2x1.nc" no3_reg
+save/clobber/file="./output_regridded/silicate_1m_regular2x1.nc" si_reg
+
+can var/all
+
+use output_raw/TEST_5d_ptrc_Y1400.nc
+
+set var/bad=0 nitr[d=3]
+set var/bad=0 no3[d=3]
+set var/bad=0 nh4[d=3]
+set var/bad=0 si[d=3]
+
+let nit_reg = curv_to_rect(NITR[d=3],map[d=1])
+let no3_reg = curv_to_rect(NO3[d=3],map[d=1])
+let nh4_reg = curv_to_rect(NH4[d=3],map[d=1])
+let si_reg = curv_to_rect(SI[d=3],map[d=1])
+
+save/clobber/file="./output_regridded/nitrif_5d_regular2x1.nc" nit_reg
+save/clobber/file="./output_regridded/ammonium_5d_regular2x1.nc" nh4_reg
+save/clobber/file="./output_regridded/nitrate_5d_regular2x1.nc" no3_reg
+save/clobber/file="./output_regridded/silicate_5d_regular2x1.nc" si_reg
+
+

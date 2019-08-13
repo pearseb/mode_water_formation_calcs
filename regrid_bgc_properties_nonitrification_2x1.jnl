@@ -1,0 +1,35 @@
+
+can data/all
+can var/all
+
+set mem/size=2000
+
+use curv_map_pisces_2x1.nc
+use properties_at_modewater_outcrops_3D_nonitrification.nc
+
+let nit_aaiw1 = curv_to_rect(Nitrif_aaiw[d=2],map[d=1])
+let nit_samw1 = curv_to_rect(Nitrif_samw[d=2],map[d=1])
+let no3_aaiw1 = curv_to_rect(Nitrat_aaiw[d=2],map[d=1])
+let no3_samw1 = curv_to_rect(Nitrat_samw[d=2],map[d=1])
+let si_aaiw1 = curv_to_rect(Silica_aaiw[d=2],map[d=1])
+let si_samw1 = curv_to_rect(Silica_samw[d=2],map[d=1])
+let vol_aaiw1 = curv_to_rect(Volume_aaiw[d=2],map[d=1])
+let vol_samw1 = curv_to_rect(Volume_samw[d=2],map[d=1])
+
+! do some post-processing data cleaning
+let nit_aaiw = if nit_aaiw1 gt 1e20 then 1/0 else nit_aaiw1
+let nit_samw = if nit_samw1 gt 1e20 then 1/0 else nit_samw1
+let no3_aaiw = if no3_aaiw1 gt 1e20 then 1/0 else no3_aaiw1
+let no3_samw = if no3_samw1 gt 1e20 then 1/0 else no3_samw1
+let si_aaiw = if si_aaiw1 gt 1e20 then 1/0 else si_aaiw1
+let si_samw = if si_samw1 gt 1e20 then 1/0 else si_samw1
+let vol_aaiw = if vol_aaiw1 gt 1e20 then 1/0 else vol_aaiw1
+let vol_samw = if vol_samw1 gt 1e20 then 1/0 else vol_samw1
+
+
+save/clobber/file="./output_regridded/nitrif_on_transports_nonitrification_regular2x1.nc" nit_aaiw,nit_samw
+save/clobber/file="./output_regridded/volume_on_transports_nonitrification_regular2x1.nc" vol_aaiw,vol_samw
+save/clobber/file="./output_regridded/nitrate_on_transports_nonitrification_regular2x1.nc" no3_aaiw,no3_samw
+save/clobber/file="./output_regridded/silicate_on_transports_nonitrification_regular2x1.nc" si_aaiw,si_samw
+
+

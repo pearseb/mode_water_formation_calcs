@@ -1,0 +1,283 @@
+
+can data/all
+can var/all
+
+set mem/size=1000
+
+
+
+!!! 3 - calculate NO3 and Si subducted/obducted and the NO3 that is nitrified (all in units of mol/s)
+
+use results/modewater_formation_3Dfield.nc
+use output_regridded/nitrif_on_transports_nonitrification_regular2x1.nc
+use output_regridded/volume_on_transports_nonitrification_regular2x1.nc
+use output_regridded/nitrate_on_transports_nonitrification_regular2x1.nc
+use output_regridded/silicate_on_transports_nonitrification_regular2x1.nc
+
+let Sann_aaiw_P = if Sann_aaiw[d=1] lt 0 then 1/0 else Sann_aaiw[d=1]
+let Sann_aaiw_N = if Sann_aaiw[d=1] lt 0 then Sann_aaiw[d=1] else 1/0
+let Sann_samw_P = if Sann_samw[d=1] lt 0 then 1/0 else Sann_samw[d=1]
+let Sann_samw_N = if Sann_samw[d=1] lt 0 then Sann_samw[d=1] else 1/0
+
+!a. NO3 subducted = average NO3 (mol/m3) * subduction rate (m3/s) = mmol/s
+!b. NO3 obducted = average NO3 (mol/m3) * obduction rate (m3/s) = mmol/s
+!c. NO3 nitrified = nitrification rate (mol/m3/s) * volume (m3) * 1e3 = mmol/s    
+!a. Si subducted = average Si (mol/m3) * subduction rate (m3/s) = mmol/s
+!b. Si obducted = average Si (mol/m3) * obduction rate (m3/s) = mmol/s
+
+
+
+!a. and !.b for AAIW
+let no3_aaiw_sub = no3_aaiw[d=4]*sann_aaiw[d=1,l=1:73] !(mmol/s)  TOTAL
+let no3_aaiw_sub_P = no3_aaiw[d=4]*sann_aaiw_P[l=1:73] !(mmol/s)  ONLY SUBDUCTION
+let no3_aaiw_sub_N = no3_aaiw[d=4]*sann_aaiw_N[l=1:73] !(mmol/s)  ONLY OBDUCTION (upwelling)
+!a. and !.b for SAMW
+let no3_samw_sub = no3_samw[d=4]*sann_samw[d=1,l=1:73] !(mmol/s)  TOTAL 
+let no3_samw_sub_P = no3_samw[d=4]*sann_samw_P[l=1:73] !(mmol/s)  ONLY SUBDUCTION
+let no3_samw_sub_N = no3_samw[d=4]*sann_samw_N[l=1:73] !(mmol/s)  ONLY OBDUCTION (upwelling)
+
+!c. for AAIW
+let no3_aaiw_nit = nit_aaiw[d=2]*1e3*vol_aaiw[d=3] !(mmol/s)  TOTAL
+let no3_aaiw_nit_P = if no3_aaiw_sub_P then no3_aaiw_nit else 0 !(mmol/s)  ONLY SUBDUCTION
+let no3_aaiw_nit_N = if no3_aaiw_sub_N then no3_aaiw_nit else 0 !(mmol/s)  ONLY OBDUCTION
+!c. for SAMW
+let no3_samw_nit = nit_samw[d=2]*1e3*vol_samw[d=3] !(mmol/s)  TOTAL
+let no3_samw_nit_P = if no3_samw_sub_P then no3_samw_nit else 0 !(mmol/s)  ONLY SUBDUCTION
+let no3_samw_nit_N = if no3_samw_sub_N then no3_samw_nit else 0 !(mmol/s)  ONLY OBDUCTION
+
+!d. and !.e for AAIW
+let si_aaiw_sub = si_aaiw[d=5]*sann_aaiw[d=1,l=1:73] !(mmol/s)  TOTAL
+let si_aaiw_sub_P = si_aaiw[d=5]*sann_aaiw_P[l=1:73] !(mmol/s)  ONLY SUBDUCTION
+let si_aaiw_sub_N = si_aaiw[d=5]*sann_aaiw_N[l=1:73] !(mmol/s)  ONLY OBDUCTION (upwelling)
+!a. and !.b for SAMW
+let si_samw_sub = si_samw[d=5]*sann_samw[d=1,l=1:73] !(mmol/s)  TOTAL 
+let si_samw_sub_P = si_samw[d=5]*sann_samw_P[l=1:73] !(mmol/s)  ONLY SUBDUCTION
+let si_samw_sub_N = si_samw[d=5]*sann_samw_N[l=1:73] !(mmol/s)  ONLY OBDUCTION (upwelling)
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! FIRST, FIND SI and NO3 TRANSPORTS THROUGH AAIW AND SAMW !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+message
+
+!! LOOK AT WHAT THE VALUES OF NO3 ARE AT SUBDUCTION/OBDUCTION SITES
+set win/aspect=0.65 1
+sha/lev=(0,10,1)(10,30,2)(inf) no3_aaiw[d=4,l=55]
+cont/o/lev=(-5000)/color=black Sann_aaiw[d=1,l=55]
+cont/o/lev=(5000)/color=red Sann_aaiw[d=1,l=55]
+go fland 20 black
+set win/aspect=0.65 2
+sha/lev=(0,10,1)(10,30,2)(inf) no3_samw[d=4,l=55]
+cont/o/lev=(-5000)/color=black Sann_samw[d=1,l=55]
+cont/o/lev=(5000)/color=red Sann_samw[d=1,l=55]
+go fland 20 black
+set win/aspect=0.65 3
+sha/lev=(0,10,1)(10,30,2)(inf) si_aaiw[d=5,l=55]
+cont/o/lev=(-5000)/color=black Sann_aaiw[d=1,l=55]
+cont/o/lev=(5000)/color=red Sann_aaiw[d=1,l=55]
+go fland 20 black
+set win/aspect=0.65 4
+sha/lev=(0,10,1)(10,30,2)(inf) si_samw[d=5,l=55]
+cont/o/lev=(-5000)/color=black Sann_samw[d=1,l=55]
+cont/o/lev=(5000)/color=red Sann_samw[d=1,l=55]
+go fland 20 black
+
+
+
+! calculate nitrate concentrations at subduction and obduction sites
+
+let no3_aaiw_submean = if no3_aaiw_sub_P then no3_aaiw[d=4] else 1/0
+let no3_aaiw_obmean = if no3_aaiw_sub_N then no3_aaiw[d=4] else 1/0
+let no3_samw_submean = if no3_samw_sub_P then no3_samw[d=4] else 1/0
+let no3_samw_obmean = if no3_samw_sub_N then no3_samw[d=4] else 1/0
+
+let no3_aaiw_submean_t = no3_aaiw_submean[x=@ave,y=-90:0@ave,l=1:73]
+let no3_aaiw_obmean_t = no3_aaiw_obmean[x=@ave,y=-90:0@ave,l=1:73]  
+let no3_samw_submean_t = no3_samw_submean[x=@ave,y=-90:0@ave,l=1:73]
+let no3_samw_obmean_t = no3_samw_obmean[x=@ave,y=-90:0@ave,l=1:73]  
+
+let si_aaiw_submean = if si_aaiw_sub_P then si_aaiw[d=5] else 1/0
+let si_aaiw_obmean = if si_aaiw_sub_N then si_aaiw[d=5] else 1/0
+let si_samw_submean = if si_samw_sub_P then si_samw[d=5] else 1/0
+let si_samw_obmean = if si_samw_sub_N then si_samw[d=5] else 1/0
+
+let si_aaiw_submean_t = si_aaiw_submean[x=@ave,y=-90:0@ave,l=1:73]
+let si_aaiw_obmean_t = si_aaiw_obmean[x=@ave,y=-90:0@ave,l=1:73]  
+let si_samw_submean_t = si_samw_submean[x=@ave,y=-90:0@ave,l=1:73]
+let si_samw_obmean_t = si_samw_obmean[x=@ave,y=-90:0@ave,l=1:73]  
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! tell me the mean no3 at aaiw and samw (mmol/m3) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead no3_aaiw_submean_t[l=40:55@ave], no3_aaiw_obmean_t[l=40:55@ave]
+list/nohead no3_samw_submean_t[l=40:55@ave], no3_samw_obmean_t[l=40:55@ave]
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! tell me the mean si at aaiw and samw (mmol/m3) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead si_aaiw_submean_t[l=40:55@ave], si_aaiw_obmean_t[l=40:55@ave]
+list/nohead si_samw_submean_t[l=40:55@ave], si_samw_obmean_t[l=40:55@ave]
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! tell me the mean si* at aaiw and samw (mmol/m3) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead si_aaiw_submean_t[l=40:55@ave]-no3_aaiw_submean_t[l=40:55@ave], si_aaiw_obmean_t[l=40:55@ave]-no3_aaiw_obmean_t[l=40:55@ave]
+list/nohead si_samw_submean_t[l=40:55@ave]-no3_samw_submean_t[l=40:55@ave], si_samw_obmean_t[l=40:55@ave]-no3_samw_obmean_t[l=40:55@ave]
+
+
+
+
+let no3_aaiw_subint_t = no3_aaiw_sub_P[x=@sum,y=-90:0@sum]  !mmol/s
+let no3_aaiw_obint_t = no3_aaiw_sub_N[x=@sum,y=-90:0@sum]*(-1)
+let no3_samw_subint_t = no3_samw_sub_P[x=@sum,y=-90:0@sum]
+let no3_samw_obint_t = no3_samw_sub_N[x=@sum,y=-90:0@sum]*(-1)
+
+let si_aaiw_subint_t = si_aaiw_sub_P[x=@sum,y=-90:0@sum]  !mmol/s
+let si_aaiw_obint_t = si_aaiw_sub_N[x=@sum,y=-90:0@sum]*(-1)
+let si_samw_subint_t = si_samw_sub_P[x=@sum,y=-90:0@sum]
+let si_samw_obint_t = si_samw_sub_N[x=@sum,y=-90:0@sum]*(-1)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! integrated no3 transports at aaiw and samw (mmol/s) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead no3_aaiw_subint_t[l=40:55@ave], no3_aaiw_obint_t[l=40:55@ave]
+list/nohead no3_samw_subint_t[l=40:55@ave], no3_samw_obint_t[l=40:55@ave]
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! integrated si transports at aaiw and samw (mmol/s) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead si_aaiw_subint_t[l=40:55@ave], si_aaiw_obint_t[l=40:55@ave]
+list/nohead si_samw_subint_t[l=40:55@ave], si_samw_obint_t[l=40:55@ave]
+
+
+
+set win 1
+plot no3_aaiw_subint_t, no3_aaiw_obint_t
+set win 2
+plot no3_samw_subint_t, no3_samw_obint_t
+set win 3
+plot si_aaiw_subint_t, si_aaiw_obint_t
+set win 4
+plot si_samw_subint_t, si_samw_obint_t
+
+! UNITS ARE IN mmol/s
+save/clobber/file="./results/silicate_transformations_nonitrification_timeseries.nc" si_aaiw_subint_t, si_aaiw_obint_t, si_samw_subint_t, si_samw_obint_t
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! SECOND, FIND NITRIFICATION RATES AND ITS CONTRIBUTION !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+message
+
+
+let nit_aaiw_submean_t = no3_aaiw_nit_P[x=@ave,y=-90:0@ave] !mmol/s
+let nit_aaiw_obmean_t = no3_aaiw_nit_N[x=@ave,y=-90:0@ave]  !mmol/s
+let nit_samw_submean_t = no3_samw_nit_P[x=@ave,y=-90:0@ave] !mmol/s
+let nit_samw_obmean_t = no3_samw_nit_N[x=@ave,y=-90:0@ave]  !mmol/s
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! mean nitrification of no3 at the sites of aaiw and samw subduction/obduction (mmol/s) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead nit_aaiw_submean_t[l=40:55@ave], nit_aaiw_obmean_t[l=40:55@ave]
+list/nohead nit_samw_submean_t[l=40:55@ave], nit_samw_obmean_t[l=40:55@ave]
+
+
+
+let nit_aaiw_subint_t = no3_aaiw_nit_P[x=@sum,y=-90:0@sum] !mmol/s
+let nit_aaiw_obint_t = no3_aaiw_nit_N[x=@sum,y=-90:0@sum]  !mmol/s
+let nit_samw_subint_t = no3_samw_nit_P[x=@sum,y=-90:0@sum] !mmol/s
+let nit_samw_obint_t = no3_samw_nit_N[x=@sum,y=-90:0@sum]  !mmol/s
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! integrated nitrification of no3 at the sites of aaiw and samw subduction/obduction (mmol/s) !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+list/nohead nit_aaiw_subint_t[l=40:55@ave], nit_aaiw_obint_t[l=40:55@ave] ! (mmol/s)
+list/nohead nit_samw_subint_t[l=40:55@ave], nit_samw_obint_t[l=40:55@ave] ! (mmol/s)
+
+
+
+message
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! FIND CONTRIBUTION OF NITRIFICATION TO SI* CHANGES     !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!    	Si* transport (mmol/s) = Si (mmol/s) - NO3 (mmol/s)
+!!	Si* value (mmol/m3) = Si* transport (mmol/s) / transport (m3/s)
+
+!!	... therefore, we can find the instantaneous contribution of nitrification to Si*
+
+!!    	Si* transport without nitrification (mmol/s) = Si (mmol/s) - NO3 (mmol/s) + NO3nitrified (mmol/s)
+!!	Si* value without nitrification (mmol/m3) = Si* transport (mmol/s) / transport (m3/s)
+
+let sistar_aaiw = si_aaiw[d=5]-no3_aaiw[d=4]
+let sistar_samw = si_samw[d=5]-no3_samw[d=4]
+
+let sis_aaiw_sub = ( si_aaiw_sub_P - no3_aaiw_sub_P )/sann_aaiw_P[l=1:73]
+let sis_aaiw_ob = ( si_aaiw_sub_N - no3_aaiw_sub_N )/sann_aaiw_N[l=1:73]
+
+let sis_samw_sub = ( si_samw_sub_P - no3_samw_sub_P )/sann_samw_P[l=1:73]
+let sis_samw_ob = ( si_samw_sub_N - no3_samw_sub_N )/sann_samw_N[l=1:73]
+
+
+let no3_aaiw_nonit_sub1 = (no3_aaiw_sub_P[l=1:73]-no3_aaiw_nit_P[l=1:73])/sann_aaiw_P[l=1:73]
+let no3_aaiw_nonit_ob1 = (no3_aaiw_sub_N[l=1:73]+no3_aaiw_nit_N[l=1:73])/sann_aaiw_N[l=1:73]
+
+let no3_samw_nonit_sub1 = (no3_samw_sub_P[l=1:73]-no3_samw_nit_P[l=1:73])/sann_samw_P[l=1:73]
+let no3_samw_nonit_ob1 = (no3_samw_sub_N[l=1:73]+no3_samw_nit_N[l=1:73])/sann_samw_N[l=1:73]
+
+! REMOVE NITRIFICATION RATES THAT ADD MORE NO3 THAN IS TRANSPORTED
+let no3_aaiw_nonit_sub = if no3_aaiw_nonit_sub1 lt 0 then 0 else no3_aaiw_nonit_sub1
+let no3_aaiw_nonit_ob = if no3_aaiw_nonit_ob1 lt 0 then 0 else no3_aaiw_nonit_ob1
+let no3_samw_nonit_sub = if no3_samw_nonit_sub1 lt 0 then 0 else no3_samw_nonit_sub1
+let no3_samw_nonit_ob = if no3_samw_nonit_ob1 lt 0 then 0 else no3_samw_nonit_ob1
+
+
+! FIND PREDICTED Si* WITHOUT NITRIFICATION
+let sis_aaiw_nonit_sub = si_aaiw_sub_P[l=1:73]/sann_aaiw_P[l=1:73] - no3_aaiw_nonit_sub[l=1:73]
+let sis_aaiw_nonit_ob = si_aaiw_sub_N[l=1:73]/sann_aaiw_N[l=1:73] - no3_aaiw_nonit_ob[l=1:73]
+
+let sis_samw_nonit_sub = si_samw_sub_P[l=1:73]/sann_samw_P[l=1:73] - no3_samw_nonit_sub[l=1:73]
+let sis_samw_nonit_ob = si_samw_sub_N[l=1:73]/sann_samw_N[l=1:73] - no3_samw_nonit_ob[l=1:73]
+
+
+set reg/y=-80:-30
+
+set win/aspect=0.65 5
+plot/vlim=-10:40:5/thick=2/color=black sistar_aaiw[x=@ave,l=@ave]
+plot/o/color=black sis_aaiw_sub[x=@ave,l=@ave]
+plot/o/color=red sis_aaiw_ob[x=@ave,l=@ave]
+plot/o/dash/color=black sis_aaiw_nonit_sub[x=@ave,l=@ave]
+plot/o/dash/color=red sis_aaiw_nonit_ob[x=@ave,l=@ave]
+
+set win/aspect=0.65 6
+plot/vlim=-10:40:5/thick=2/color=black sistar_samw[x=@ave,l=@ave]
+plot/o/color=black sis_samw_sub[x=@ave,l=@ave]
+plot/o/color=red sis_samw_ob[x=@ave,l=@ave]
+plot/o/dash/color=black sis_samw_nonit_sub[x=@ave,l=@ave]
+plot/o/dash/color=red sis_samw_nonit_ob[x=@ave,l=@ave]
+
+
+save/clobber/file="./results/sistar_transformations_nonitrification_3Dfield.nc" sistar_aaiw, sis_aaiw_sub, sis_aaiw_ob, sis_aaiw_nonit_sub, sis_aaiw_nonit_ob, sistar_samw, sis_samw_sub, sis_samw_ob, sis_samw_nonit_sub, sis_samw_nonit_ob
+
+let sistar_aaiw_all = sistar_aaiw[x=@ave,l=@ave]
+let sistar_aaiw_subducted = sis_aaiw_sub[x=@ave,l=@ave]
+let sistar_aaiw_obducted = sis_aaiw_ob[x=@ave,l=@ave]
+let sistar_aaiw_nonit_subducted = sis_aaiw_nonit_sub[x=@ave,l=@ave]
+let sistar_aaiw_nonit_obducted = sis_aaiw_nonit_ob[x=@ave,l=@ave]
+
+let sistar_samw_all = sistar_samw[x=@ave,l=@ave]
+let sistar_samw_subducted = sis_samw_sub[x=@ave,l=@ave]
+let sistar_samw_obducted = sis_samw_ob[x=@ave,l=@ave]
+let sistar_samw_nonit_subducted = sis_samw_nonit_sub[x=@ave,l=@ave]
+let sistar_samw_nonit_obducted = sis_samw_nonit_ob[x=@ave,l=@ave]
+
+! UNITS ARE IN Si* mmol/m3
+save/clobber/file="./results/sistar_transformations_nonitrification_timeseries.nc" sistar_aaiw_all, sistar_aaiw_subducted, sistar_aaiw_obducted, sistar_aaiw_nonit_subducted, sistar_aaiw_nonit_obducted, sistar_samw_all, sistar_samw_subducted, sistar_samw_obducted, sistar_samw_nonit_subducted, sistar_samw_nonit_obducted 
+
+

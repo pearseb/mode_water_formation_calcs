@@ -85,3 +85,10 @@ ferret -script calculate_sistar_trend_on_modewaters.jnl
 ferret -script calculate_nitrif_contrib_sistartrans.jnl
 
 
+# (3.4) 
+#	execute the following script but using the ORCA2_OFF_PISCESnitoff_5d_ptrc_Y1400.nc output:
+#		- properties_at_modewater_outcrops.py
+#	and transfer the following file back:
+#		- properties_at_modewater_outcrops_3D_nonitrification.nc  (lon x lat x time)
+ferret -script regrid_bgc_properties_nonitrification_2x1.jnl
+ferret -script calculate_nitrif_contrib_sistartrans_nonitrification.jnl
